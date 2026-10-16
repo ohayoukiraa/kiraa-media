@@ -31,7 +31,7 @@ function connect() {
   sessionStorage.setItem("st", state);
   const url = "https://www.tiktok.com/v2/auth/authorize/"
     + "?client_key=" + CLIENT_KEY
-    + "&scope=user.info.basic,video.upload,video.publish"
+    + "&scope=user.info.basic,video.upload"
     + "&response_type=code"
     + "&redirect_uri=" + encodeURIComponent(REDIRECT)
     + "&state=" + state
