@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiraa Media — TikTok Connect</title>
+<style>
+  body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#0a0a0a;color:#fff;display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center}
+  .card{max-width:520px;padding:40px}
+  h1{font-size:2rem;margin:0 0 8px}
+  p{color:#9ca3af;line-height:1.6}
+  button{margin-top:24px;background:#fe2c55;color:#fff;border:none;padding:14px 32px;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer}
+  button:hover{background:#e51e4a}
+  #status{margin-top:20px;word-break:break-all;color:#4ade80;font-family:monospace;font-size:.85rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🐱 Kiraa Media</h1>
+  <p>Hubungkan akun TikTok kamu untuk mengizinkan upload video otomatis (mode draft).</p>
+  <button onclick="connect()">Login with TikTok</button>
+  <div id="status"></div>
+</div>
+<script>
+const CLIENT_KEY = "awdqoybwdya3vej9";
+const REDIRECT = "https://ohayoukiraa.github.io/kiraa-media/";
+
+function connect() {
+  const state = crypto.randomUUID();
+  const codeVerifier = base64url(crypto.getRandomValues(new Uint8Array(48)));
+  sessionStorage.setItem("cv", codeVerifier);
+  sessionStorage.setItem("st", state);
+  const url = "https://www.tiktok.com/v2/auth/authorize/"
+    + "?client_key=" + CLIENT_KEY
+    + "&scope=user.info.basic,video.upload,video.publish"
+    + "&response_type=code"
+    + "&redirect_uri=" + encodeURIComponent(REDIRECT)
+    + "&state=" + state
+    + "&code_challenge=" + codeVerifier
+    + "&code_challenge_method=S256";
+  window.location.href = url;
+}
+
+async function sha256(s) {
+  const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return base64url(new Uint8Array(d));
+}
+function base64url(bytes) {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+
+(async () => {
+  const p = new URLSearchParams(location.search);
+  if (p.get("code")) {
+    const st = p.get("state");
+    const cv = sessionStorage.getItem("cv");
+    if (st !== sessionStorage.getItem("st")) {
+      document.getElementById("status").textContent = "State mismatch — coba lagi.";
+      return;
+    }
+    const challenge = await sha256(cv);
+    document.getElementById("status").textContent =
+      "Kode otorisasi diterima!\n\ncode=" + p.get("code") + "\n\ncode_verifier=" + cv;
+  }
+})();
+</script>
+</body>
+</html>
